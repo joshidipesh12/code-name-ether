@@ -1,85 +1,47 @@
-# code-name-ether
+# Code Name: Ether 🛡️📱
 
-[![React Native](https://img.shields.io/badge/React_Native-20232A?style=flat&logo=react&logoColor=61DAFB)](#)
-[![Expo](https://img.shields.io/badge/Expo-000020?style=flat&logo=expo&logoColor=white)](#)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](#)
+**An Open-Source, Zero-Cloud Local DVR Security Camera App**
 
-**code-name-ether** is a privacy-first, zero-cloud security camera application designed to upcycle older Android and iOS devices. It transforms unused smartphones into headless, motion-activated security cameras that process and store video footage entirely on the local file system.
+Code Name: Ether is a privacy-first mobile application designed to upcycle your old, unused Android and iOS smartphones into reliable, headless security cameras. Unlike traditional cloud-dependent security solutions, Ether processes and stores all video footage locally on the device. 
 
----
+Built with a focus on long-term hardware sustainability and zero-cloud architecture, it is the perfect solution for tech-savvy and privacy-conscious users who want complete control over their security data.
 
-## 🚀 Key Features
+## 🌟 Key Features (MVP)
 
-*   **Zero-Cloud Privacy:** All footage is stored strictly on the local device. No servers, no accounts, no subscriptions.
-*   **Intelligent Motion Detection:** Utilizes hyper-efficient OpenCV pixel-differencing to trigger recordings only when movement is detected, saving massive amounts of storage.
-*   **Auto-Loop Recording (FIFO):** Seamlessly records in manageable video chunks. When the user-defined storage limit is reached, the app automatically deletes the oldest unprotected chunk.
-*   **Extreme Power Saving Mode:** Designed for 24/7 headless operation. Triggers Immersive Mode, forces absolute minimum screen brightness, disables touch inputs, and turns off OLED pixels to prevent thermal throttling and battery degradation.
-*   **Internal Gallery & Favorites:** Chronological grid of captured events. Users can lock up to 10 critical recordings to protect them from the auto-deletion loop.
-*   **System Status Logs:** Real-time text output of device temperature, storage buffer, and foreground service health.
+*   **100% Local Storage:** Videos are recorded directly to the device's storage in segmented chunks without any cloud uploading. 
+*   **Motion-Activated Recording:** Saves battery and storage by only recording when pixel-level motion is detected using highly-optimized OpenCV algorithms.
+*   **Intelligent Loop Recording (FIFO):** Acts as an automated janitor, actively monitoring the allocated storage limit and automatically deleting the oldest video chunks to maintain a continuous recording loop.
+*   **Extreme Power-Saving Mode:** Designed to run 24/7 on older hardware without causing thermal throttling or screen burn-in. The app utilizes Android's Immersive Mode, forces the lowest brightness, disables UI inputs, and turns off OLED pixels to keep the phone running cool.
+*   **Internal App Gallery:** An organized chronological grid of motion events allowing users to view, export, and delete recordings. 
+*   **Protected Favorites:** Users can "lock" up to 10 important video recordings to prevent them from being overwritten by the auto-deletion loop.
+*   **Live System Status & Logs:** A dedicated dashboard detailing real-time device temperature, remaining storage buffers, and operational logs (e.g., motion detected, background services healthy) to guarantee headless reliability.
+*   **Advanced Camera Setup Overlay:** Granular controls for stream resolution (480p/1080p), flashlight toggles, orientation lock, and active motion indicators.
 
----
+## 🏗️ Technical Architecture 
 
-## 🏗️ Architecture & Custom Native Modules
+To achieve system-level hardware control while maintaining a fluid user interface, Ether is built using **Expo** with **Continuous Native Generation (CNG)**. 
 
-This project uses **Expo Continuous Native Generation (CNG)** and strictly decouples its core engine into three highly optimized, cross-platform native modules. 
+### Core Tech Stack
+*   **UI & Routing:** React Native, Expo Router
+*   **Camera Hardware Interface:** `react-native-vision-camera`
+*   **File Operations:** `expo-file-system`
 
-1.  `react-native-camera-foreground-service`
-    *   Elevates app execution priority via Android's `FOREGROUND_SERVICE_TYPE_CAMERA`.
-    *   Manages persistent system notifications to prevent aggressive OS battery optimizations from killing the recording loop.
-2.  `react-native-directory-limit-manager`
-    *   A high-performance C++/Kotlin file janitor.
-    *   Bypasses the JS bridge to evaluate directory sizes and execute First-In, First-Out (FIFO) `.mp4` deletions securely.
-3.  `react-native-opencv-motion-detector`
-    *   A statically compiled C++ Nitro Module wrapping OpenCV (`cv::absdiff` and `cv::threshold`).
-    *   Ingests YUV frames from `react-native-vision-camera`, dropping the color channel to minimize CPU overhead while identifying frame-by-frame pixel deviations.
+### Custom Native Modules
+Because standard background libraries cannot handle continuous hardware access, Ether heavily relies on three custom, deeply decoupled Expo/React Native modules:
 
----
+1.  **`react-native-camera-foreground-service`**: Prevents the Android OS from killing the background camera process. It wraps the standard Android Foreground Service with the `FOREGROUND_SERVICE_TYPE_CAMERA` declaration and manages persistent notifications to ensure the app stays alive indefinitely.
+2.  **`react-native-directory-limit-manager`**: A high-performance native directory watcher that bypasses the JS bridge to query the file system. It enforces the maximum storage limits using a First-In, First-Out (FIFO) deletion script while ignoring user-favorited files.
+3.  **`react-native-opencv-motion-detector`**: A highly optimized C++ Frame Processor built via Nitro Modules. By analyzing the lightweight YUV luminance channel utilizing OpenCV (`cv::absdiff` and `cv::threshold`), it executes hyper-efficient pixel differencing for continuous motion detection without draining the battery.
 
-## 🛠️ Getting Started
+## 🚀 Future Roadmap
 
-### Prerequisites
-*   Node.js (v18+)
-*   Android Studio / Xcode (for local native compilation)
-*   Expo CLI
+While the MVP focuses on a purely local, zero-cloud architecture, the underlying infrastructure is designed to accommodate powerful future expansions:
 
-### Installation & Build
-
-Because this project relies on custom native modules and C++ bindings, **standard Expo Go will not work.** You must compile the native Android/iOS application locally.
-
-```bash
-# 1. Clone the repository
-git clone [https://github.com/your-org/code-name-ether.git](https://github.com/your-org/code-name-ether.git)
-cd code-name-ether
-
-# 2. Install dependencies
-npm install
-
-# 3. Prebuild the native directories (CNG)
-npx expo prebuild --clean
-
-# 4. Compile and run on a connected physical device (Emulators lack camera hardware)
-npx expo run:android
-# or
-npx expo run:ios
-```
----
-
-## ⚙️ CI/CD & Testing
-
-This repository utilizes GitHub Actions for Continuous Integration. Every Pull Request triggers a sandboxed environment that runs unit tests, lints the JavaScript/TypeScript layer, and executes a dry-run Gradle compilation. This automated pipeline ensures that any underlying C++ or Java/Kotlin modifications to the custom modules do not introduce complex Gradle build crashes into the main branch.
-
----
-
-## 🗺️ Future Roadmap
-
-•	Hybrid AI Pipeline: Implementing a cascaded logic flow where the lightweight OpenCV worklet triggers a localized TFLite MobileNet SSD model to verify human presence, drastically reducing false positives.
-
-•	P2P WebRTC Access: Adding the ability to securely stream live footage to a secondary device over a direct peer-to-peer connection via self-hosted STUN/TURN servers.
+*   **Hybrid AI Motion Pipeline:** Implementing a lightweight TFLite model (e.g., MobileNet SSD) to validate human presence. The C++ OpenCV pixel differencing will serve as a low-power "wake-up" trigger for the AI, drastically reducing false positives while maintaining battery health.
+*   **P2P Live Streaming:** Integration of WebRTC with lightweight STUN/TURN signaling servers to allow remote, end-to-end encrypted live viewing without centralized cloud servers.
 
 ## 🤝 Contributing
+Code Name: Ether is an open-source project built for the community. Since we leverage custom Expo Native Modules and heavy C++ bindings, please refer to our contributing guidelines before opening PRs regarding Gradle or CMake modifications. 
 
-We welcome community contributions, especially for optimizing the C++ JSI bindings and iOS background audio workarounds for the foreground service. Please open an issue to discuss major architectural changes before submitting a Pull Request.
-
-## 📜 License & Authorship
-
+## 📝 License
 Distributed under the Apache 2.0 License. See LICENSE for more information.
