@@ -26,7 +26,45 @@ The application's core requirement is deep integration with hardware (camera, fi
 
 The user experience is designed around a "set and forget" philosophy. The interface must be highly readable and intuitive for a broad audience, guiding them from initial setup to long-term headless operation with minimal friction. The primary design language will be clean and functional, using a card-based layout and clear, geometric typography.
 
-### 3.1. Main Dashboard (Home Screen)
+### 3.1. Theming and Style Guide
+
+To ensure a consistent and maintainable visual identity, the application will enforce a strict theming strategy. All UI components that involve color must adhere to the centralized theming system.
+
+*   **Single Source of Truth:** The `src/constants/theme.ts` file is the single source of truth for all design tokens, including colors, fonts, and spacing.
+*   **Dynamic Colors with `useColors`:** All components **must** use the `useColors` hook (from `src/hooks/use-colors.ts`) to access the appropriate color palette. This hook automatically returns the correct set of colors based on the user's selected color scheme (light or dark).
+*   **No Hardcoded Colors:** Hardcoding color values directly in component styles (e.g., `color: '#FFF'`, `backgroundColor: 'black'`) is strictly forbidden. Instead, use the properties from the object returned by `useColors`.
+
+**Example Usage:**
+
+```tsx
+import { Text, View, StyleSheet } from 'react-native';
+import { useColors } from '@/hooks/use-colors';
+import { Spacing } from '@/constants/theme';
+
+const ThemedComponent = () => {
+  const colors = useColors();
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.text, { color: colors.text }]}>
+        This text will be black in light mode and white in dark mode.
+      </Text>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: Spacing.three,
+  },
+  text: {
+    fontSize: 16,
+  },
+});
+```
+
+### 3.2. Main Dashboard (Home Screen)
 
 This is the user's primary entry point, acting as a simple and clear launchpad.
 
@@ -37,7 +75,7 @@ This is the user's primary entry point, acting as a simple and clear launchpad.
     *   **Settings:** An icon-based link to the main settings page.
     *   **System Status:** An icon-based link to the activity logs page.
 
-### 3.2. Camera Setup Mode
+### 3.3. Camera Setup Mode
 
 This mode is entered after tapping the primary action card. It allows the user to physically position the device while viewing a live camera feed.
 
@@ -48,7 +86,7 @@ This mode is entered after tapping the primary action card. It allows the user t
     *   **Motion Preview:** The border of the screen will flash or change color subtly to provide real-time visual feedback when the OpenCV module detects motion, helping the user calibrate sensitivity.
 *   **Finalization Button:** A clearly labeled button, **"Activate Power Saving Mode,"** which initiates the final lockdown state.
 
-### 3.3. Power Saving "Stealth" Mode
+### 3.4. Power Saving "Stealth" Mode
 
 This is the default, long-term operational state of the application. The goal is to make the device appear as if it is turned off, preventing screen burn-in and reducing thermal load.
 
@@ -58,7 +96,7 @@ This is the default, long-term operational state of the application. The goal is
 *   **Input:** All touch input on the screen will be disabled to prevent accidental interactions.
 *   **Exit Condition:** The only way to exit this mode is by pressing the device's physical **Power Button**, which will return the user to the lock screen or the app's dashboard.
 
-### 3.4. Internal Gallery and Settings
+### 3.5. Internal Gallery and Settings
 
 *   **Gallery:** A vertically scrolling grid of thumbnails, sorted chronologically. Each item will display the timestamp and duration of the recording. A long-press action will reveal a context menu with options to **Delete**, **Share**, or **Favorite** the clip (up to the capped limit of 10).
 *   **Settings:** A simple, list-based screen with toggles and sliders for configuring:
